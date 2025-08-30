@@ -1,20 +1,19 @@
 package sharepa.app
 
-import sharepa.utils.Printer
+import sharepa.nlp.nlp
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    val message = "Hello, " + name + "!"
-    val printer = Printer(message)
-    printer.printMessage()
+    println("=== NLProgramming Demo ===\n")
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+    println("English to Kotlin Translation:")
+    val englishInput = """return sum and average of args["a"] and args["b"]"""
+
+    try {
+        val mathFunction = nlp(englishInput)
+        val result = mathFunction(mapOf("a" to 5, "b" to 10))
+        println("   Input: $englishInput")
+        println("   Result: $result")
+    } catch (e: Exception) {
+        println("   Error: ${e.message}")
     }
 }
