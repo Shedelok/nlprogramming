@@ -8,8 +8,9 @@ import org.json.JSONObject
  */
 internal class LLMAmbiguityDetector(
     private val llmClient: LLMClient,
-    private val resultFactory: AmbiguityResultFactory
+    clarityThreshold: Int
 ) : AmbiguityDetector {
+    private val resultFactory = AmbiguityResultFactory(clarityThreshold)
     override fun detectAmbiguity(naturalLanguageText: String): AmbiguityResult {
         val response = llmClient.generateText(AMBIGUITY_DETECTION_PROMPT, naturalLanguageText)
         return parseAmbiguityResponse(response)

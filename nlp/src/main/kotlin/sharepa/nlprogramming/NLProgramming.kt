@@ -6,12 +6,10 @@ import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.compiler.BasicJvmKotlinScriptCompiler
 import sharepa.nlprogramming.ambiguity.AmbiguityDetector
 import sharepa.nlprogramming.ambiguity.LLMAmbiguityDetector
-import sharepa.nlprogramming.ambiguity.AmbiguityResultFactory
 import sharepa.nlprogramming.llm.GroqLLMClient
 
 class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
     private val compiler = BasicJvmKotlinScriptCompiler()
-    private val ambiguityResultFactory = AmbiguityResultFactory(clarityThresholdForAmbiguityDetection)
 
     private val translator: NLToKotlinScriptTranslator
     private val ambiguityDetector: AmbiguityDetector
@@ -19,7 +17,7 @@ class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
     init {
         val llmClient = GroqLLMClient()
         translator = LLMNLToKotlinScriptTranslator(llmClient)
-        ambiguityDetector = LLMAmbiguityDetector(llmClient, ambiguityResultFactory)
+        ambiguityDetector = LLMAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
     }
 
     fun compileAndCall(input: String, vararg args: Pair<String, Any>): Any? {
