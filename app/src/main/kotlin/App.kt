@@ -1,19 +1,17 @@
 package sharepa.app
 
-import sharepa.nlp.nlp
+import sharepa.nlprogramming.NLProgramming
 
 fun main() {
-    println("=== NLProgramming Demo ===\n")
-
-    println("English to Kotlin Translation:")
-    val englishInput = """return sum and average of args["a"] and args["b"]"""
+    val nlp = NLProgramming()
 
     try {
-        val mathFunction = nlp(englishInput)
-        val result = mathFunction(mapOf("a" to 5, "b" to 10))
-        println("   Input: $englishInput")
-        println("   Result: $result")
+        val result = nlp.implementAndRunFun(
+            """calculate number of palindrome strings in array args["arr"] (not list)""",
+            "arr" to arrayOf("A", "b", "ba", "aba")
+        )
+        println("Result: $result")
     } catch (e: Exception) {
-        println("   Error: ${e.message}")
+        println("Error: ${e.message}")
     }
 }
