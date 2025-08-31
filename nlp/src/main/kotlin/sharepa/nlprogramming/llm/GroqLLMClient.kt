@@ -21,6 +21,7 @@ internal class GroqLLMClient : LLMClient {
             .post(requestBody)
             .build()
 
+        Thread.sleep(1100) // to avoid hitting rate limit
         return client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 throw Exception("API call failed: ${response.code}")
@@ -46,7 +47,7 @@ internal class GroqLLMClient : LLMClient {
         }
 
         val jsonBody = JSONObject().apply {
-            put("model", "llama-3.3-70b-versatile")
+            put("model", "llama-3.1-8b-instant")
             put("messages", messages)
             put("temperature", 0)
             put("max_tokens", 4000)

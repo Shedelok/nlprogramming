@@ -29,13 +29,13 @@ Rules:
 5. The expression should evaluate to a function value that can be called
 
 Example:
-Input: "return sum and average of args[\"a\"] and args[\"b\"]"
+Input: "return sum and average of args[\"a\"] and args[\"b\"] as a pair"
 Output:
 (fun(args: Map<String, Any>): Any? {
     val a = args["a"] as Int
     val b = args["b"] as Int
     val sum = a + b
     val average = sum.toDouble() / 2
-    return "Sum: ${'$'}sum, Average: ${'$'}average"
+    return sum to average
 })
 """
