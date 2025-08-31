@@ -6,7 +6,7 @@ fun main() {
     val nlp = NLProgramming()
 
     try {
-        val result = nlp.implementAndRunFun(
+        val result = nlp.compileAndCall(
             """calculate number of palindrome strings in array args["arr"] (not list)""",
             "arr" to arrayOf("A", "b", "ba", "aba")
         )

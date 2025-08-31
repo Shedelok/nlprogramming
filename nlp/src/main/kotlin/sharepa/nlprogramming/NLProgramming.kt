@@ -22,7 +22,7 @@ class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
         ambiguityDetector = LLMAmbiguityDetector(llmClient, ambiguityResultFactory)
     }
 
-    fun implementAndRunFun(input: String, vararg args: Pair<String, Any>): Any? {
+    fun compileAndCall(input: String, vararg args: Pair<String, Any>): Any? {
         val ambiguityResult = ambiguityDetector.detectAmbiguity(input)
         if (ambiguityResult.isAmbiguous) {
             throw NlProgrammingAmbiguityException(ambiguityResult)
