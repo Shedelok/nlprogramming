@@ -1,7 +1,7 @@
 package sharepa.nlprogramming
 
 import sharepa.nlprogramming.translator.NLToKotlinScriptTranslator
-import sharepa.nlprogramming.translator.GroqNLToKotlinScriptTranslator
+import sharepa.nlprogramming.translator.LLMNLToKotlinScriptTranslator
 import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.compiler.BasicJvmKotlinScriptCompiler
 import sharepa.nlprogramming.ambiguity.AmbiguityDetector
@@ -10,11 +10,17 @@ import sharepa.nlprogramming.ambiguity.AmbiguityResultFactory
 import sharepa.nlprogramming.llm.GroqLLMClient
 
 class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
-    private val translator: NLToKotlinScriptTranslator = GroqNLToKotlinScriptTranslator()
-    private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
+    private val compiler = BasicJvmKotlinScriptCompiler()
+    private val ambiguityResultFactory = AmbiguityResultFactory(clarityThresholdForAmbiguityDetection)
 
-    private val ambiguityResultFactory: AmbiguityResultFactory = AmbiguityResultFactory(clarityThresholdForAmbiguityDetection)
-    private val ambiguityDetector: AmbiguityDetector = LLMAmbiguityDetector(GroqLLMClient(), ambiguityResultFactory)
+    private val translator: NLToKotlinScriptTranslator
+    private val ambiguityDetector: AmbiguityDetector
+
+    init {
+        val llmClient = GroqLLMClient()
+        translator = LLMNLToKotlinScriptTranslator(llmClient)
+        ambiguityDetector = LLMAmbiguityDetector(llmClient, ambiguityResultFactory)
+    }
 
     fun implementAndRunFun(input: String, vararg args: Pair<String, Any>): Any? {
         val ambiguityResult = ambiguityDetector.detectAmbiguity(input)

@@ -2,8 +2,7 @@ package sharepa.nlprogramming.translator
 
 import sharepa.nlprogramming.llm.LLMClient
 
-
-internal abstract class AbstractLlmNLToKotlinScriptTranslator(
+internal class LLMNLToKotlinScriptTranslator(
     private val llmClient: LLMClient
 ) : NLToKotlinScriptTranslator {
 
