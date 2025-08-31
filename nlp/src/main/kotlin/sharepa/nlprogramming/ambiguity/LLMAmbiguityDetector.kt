@@ -18,7 +18,13 @@ internal class LLMAmbiguityDetector(
     }
 
     private fun parseAmbiguityResponse(response: String): AmbiguityResult {
-        val json = JSONObject(response.trim())
+        val cleanResponse = response.trim()
+            .removePrefix("```json")
+            .removePrefix("```")
+            .removeSuffix("```")
+            .trim()
+
+        val json = JSONObject(cleanResponse)
 
         val clarityScore = json.getInt("clarity_score")
         val summary = json.getString("summary")
@@ -65,6 +71,8 @@ Provide your analysis as a JSON object with this exact structure:
     "issues": [<array of specific examples of ambiguity in desired behavior found>],
     "suggestions": [<array of specific suggestions to fix ambiguity>]
 }
+
+ONLY return the JSON object, no comments needed.
 
 Example analyses:
 <example1>

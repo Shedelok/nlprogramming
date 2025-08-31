@@ -2,10 +2,11 @@ package sharepa.nlprogramming
 
 import sharepa.nlprogramming.translator.NLToKotlinScriptTranslator
 import sharepa.nlprogramming.translator.LLMNLToKotlinScriptTranslator
-import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.compiler.BasicJvmKotlinScriptCompiler
 import sharepa.nlprogramming.ambiguity.AmbiguityDetector
 import sharepa.nlprogramming.ambiguity.LLMAmbiguityDetector
+import sharepa.nlprogramming.ambiguity.ImplementationConfidenceChecker
+import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
 import sharepa.nlprogramming.llm.GroqLLMClient
 
 class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 90) {
@@ -13,11 +14,13 @@ class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 90) {
 
     private val translator: NLToKotlinScriptTranslator
     private val ambiguityDetector: AmbiguityDetector
+    private val implementationConfidenceChecker: ImplementationConfidenceChecker
 
     init {
         val llmClient = GroqLLMClient()
         translator = LLMNLToKotlinScriptTranslator(llmClient)
         ambiguityDetector = LLMAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
+        implementationConfidenceChecker = LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
     }
 
     fun compileAndCall(input: String, vararg args: Pair<String, Any>): Any? {
@@ -33,6 +36,10 @@ class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 90) {
                 "Error translating natural language expression to a Kotlin script.",
                 e
             )
+        }
+
+        if (!implementationConfidenceChecker.isImplementationAcceptable(input, translatedFunExpr)) {
+            throw NlProgrammingImplementationMismatchException(translatedFunExpr)
         }
 
         @Suppress("UNCHECKED_CAST")

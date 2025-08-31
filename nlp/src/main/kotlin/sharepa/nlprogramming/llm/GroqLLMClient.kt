@@ -47,7 +47,7 @@ internal class GroqLLMClient : LLMClient {
         }
 
         val jsonBody = JSONObject().apply {
-            put("model", "llama-3.1-8b-instant")
+            put("model", "llama-3.3-70b-versatile")
             put("messages", messages)
             put("temperature", 0)
             put("max_tokens", 4000)

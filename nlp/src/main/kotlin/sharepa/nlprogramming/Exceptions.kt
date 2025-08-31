@@ -2,10 +2,19 @@ package sharepa.nlprogramming
 
 import sharepa.nlprogramming.ambiguity.AmbiguityResult
 
+/**
+ * Wrapper for exceptions happened when running compiled code on user's input.
+ */
 class NlProgrammingExecutionException(val generatedCode: String, cause: Throwable? = null) :
     Exception("Error executing users's function.", cause)
 
+/**
+ * Exception raised during converting user's prompt into an executable code.
+ */
 open class NlProgrammingCompilationException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+class NlProgrammingImplementationMismatchException(val generatedCode: String) :
+    NlProgrammingCompilationException("The code generated doesn't match prompt very well. The prompt must be ambiguous. Generated code:\n$generatedCode")
 
 class NlProgrammingAmbiguityException(val ambiguityResult: AmbiguityResult) :
     NlProgrammingCompilationException(formatAmbiguityMessage(ambiguityResult))

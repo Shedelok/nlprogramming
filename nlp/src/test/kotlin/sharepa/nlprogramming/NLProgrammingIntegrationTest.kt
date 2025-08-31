@@ -27,9 +27,9 @@ class NLProgrammingIntegrationTest {
 
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
-    fun `should work for add a and b`() {
+    fun `should work for add ints a and b`() {
         val result = nlp.compileAndCall(
-            """add args["a"] and args["b"]""",
+            """add ints args["a"] and args["b"]""",
             "a" to 5,
             "b" to 3
         )
@@ -80,7 +80,7 @@ class NLProgrammingIntegrationTest {
                 array = args["array"] as IntArray
                 result = new IntArray of the same size
                 c = 0
-                for each element e in array:
+                for each element (e,i) in array:
                   c += e
                   result[i] = c
 
