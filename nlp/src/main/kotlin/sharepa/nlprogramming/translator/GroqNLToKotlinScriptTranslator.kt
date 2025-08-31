@@ -41,9 +41,8 @@ internal class GroqNLToKotlinScriptTranslator : NLToKotlinScriptTranslator {
             1. Return ONLY a function expression wrapped in parentheses: (fun(args: Map<String, Any>): Any? { ... })
             2. Access input values using args["key_name"] syntax inside the function
             3. Use appropriate type casting when accessing args values
-            4. Use return statements to return results (you can have multiple return points)
-            5. No explanations, comments, or markdown formatting
-            6. The expression should evaluate to a function value that can be called
+            4. No explanations, comments, or markdown formatting
+            5. The expression should evaluate to a function value that can be called
 
             Example:
             Input: "return sum and average of args[\"a\"] and args[\"b\"]"
