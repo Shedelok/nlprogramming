@@ -8,6 +8,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class NLProgrammingIntegrationTest {
 
@@ -59,12 +60,55 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
+    fun `should modify arguments by reference`() {
+        val array = intArrayOf(2, 1, 3, -2, 0, 2)
+
+        nlp.compileAndCall(
+            """you are given IntArray args["array"]. Replace all values equal 2 with -2 in it""",
+            "array" to array
+        )
+
+        assertEquals(intArrayOf(-2, 1, 3, -2, 0, -2).toList(), array.toList())
+    }
+
+    @Test
+    fun `should understand and compile pseudocode`() {
+        val array = intArrayOf(1, 2, 3, -10, 5, 6)
+
+        val result = nlp.compileAndCall(
+            """
+                array = args["array"] as IntArray
+                result = new IntArray of the same size
+                c = 0
+                for each element e in array:
+                  c += e
+                  result[i] = c
+
+                return result
+            """.trimIndent(),
+            "array" to array
+        )
+
+        assertEquals(intArrayOf(1, 3, 6, -4, 1, 7).toList(), (result as IntArray).toList())
+    }
+
+    @Test
     fun `should throw ambiguity exception for ambiguous prompt`() {
         assertThrows<NlProgrammingAmbiguityException> {
             nlp.compileAndCall(
-                """sort the list of integers args["list"]""",
-                "list" to listOf(3, 1, 4, 1, 5)
+                """find the first duplicate in list of integers args['list']""",
+                "list" to listOf(1, 2, 3, 1, 3)
             )
         }
     }
+
+//    @Test
+//    fun `should throw ambiguity exception for ambiguous prompt`() {
+//        assertThrows<NlProgrammingAmbiguityException> {
+//            nlp.compileAndCall(
+//                """sort the list of integers args["list"]""",
+//                "list" to listOf(3, 1, 4, 1, 5)
+//            )
+//        }
+//    }
 }

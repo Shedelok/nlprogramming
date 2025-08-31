@@ -18,14 +18,15 @@ internal class LLMNLToKotlinScriptTranslator(
 }
 
 private const val KOTLIN_SCRIPT_SYSTEM_PROMPT = """
-You are a Kotlin script expression generator. Convert the following natural language description to a complete Kotlin script expression.
+You are a Kotlin script expression generator. Convert the following description to a complete Kotlin script expression.
 
 Rules:
 1. Return ONLY a function expression wrapped in parentheses: (fun(args: Map<String, Any>): Any? { ... })
 2. Access input values using args["key_name"] syntax inside the function
-3. Use appropriate type casting when accessing args values
-4. No explanations, comments, or markdown formatting
-5. The expression should evaluate to a function value that can be called
+3. Be attentive to the data types mentioned in the users's prompt. Use types mentioned (or more generic types if possible).
+4. Use appropriate type casting when accessing args values
+5. No explanations, comments, or markdown formatting
+6. The expression should evaluate to a function value that can be called
 
 Example:
 Input: "return sum and average of args[\"a\"] and args[\"b\"] as a pair"

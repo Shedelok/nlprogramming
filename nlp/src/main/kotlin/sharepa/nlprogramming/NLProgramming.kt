@@ -8,7 +8,7 @@ import sharepa.nlprogramming.ambiguity.AmbiguityDetector
 import sharepa.nlprogramming.ambiguity.LLMAmbiguityDetector
 import sharepa.nlprogramming.llm.GroqLLMClient
 
-class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
+class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 90) {
     private val compiler = BasicJvmKotlinScriptCompiler()
 
     private val translator: NLToKotlinScriptTranslator
@@ -26,9 +26,17 @@ class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
             throw NlProgrammingAmbiguityException(ambiguityResult)
         }
 
+        val translatedFunExpr = try {
+            translator.translateToKotlinScriptFunctionExpression(input)
+        } catch (e: Exception) {
+            throw NlProgrammingCompilationException(
+                "Error translating natural language expression to a Kotlin script.",
+                e
+            )
+        }
+
         @Suppress("UNCHECKED_CAST")
         val compiledFunExpr = try {
-            val translatedFunExpr = translator.translateToKotlinScriptFunctionExpression(input)
             compiler.compileToValue(translatedFunExpr) as (Map<String, Any?>) -> Any?
         } catch (e: Exception) {
             throw NlProgrammingCompilationException(
@@ -37,6 +45,10 @@ class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 80) {
             )
         }
 
-        return compiledFunExpr(args.toMap())
+        return try {
+            compiledFunExpr(args.toMap())
+        } catch (e: Exception) {
+            throw NlProgrammingExecutionException(translatedFunExpr, e)
+        }
     }
 }

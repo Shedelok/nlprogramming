@@ -11,6 +11,7 @@ internal class LLMAmbiguityDetector(
     clarityThreshold: Int
 ) : AmbiguityDetector {
     private val resultFactory = AmbiguityResultFactory(clarityThreshold)
+
     override fun detectAmbiguity(naturalLanguageText: String): AmbiguityResult {
         val response = llmClient.generateText(AMBIGUITY_DETECTION_PROMPT, naturalLanguageText)
         return parseAmbiguityResponse(response)
@@ -34,53 +35,49 @@ internal class LLMAmbiguityDetector(
 }
 
 private const val AMBIGUITY_DETECTION_PROMPT = """
-You are an ambiguity detection system for natural language programming prompts that are later translated to Kotlin. Analyze the given prompt and determine how clearly it specifies what code should be generated.
+You are an ambiguity detection system for free-form prompts that are later translated to a function in Kotlin. Analyze the given prompt and determine how clear it is what the function is expected to do.
 
-Be strict about ambiguity detection - flag prompts that lack details that would lead to different implementations by different developers.
+You will be given a prompt that describes behavior of a kotlin function with the only parameter <parameter>args: Map<String, Any></parameter>.
 
-Your main goal is to assess the probability of this prompt resulting in code that behaves differently if given to different developers to implement.
+This prompt will later be passed to an LLM to generate the code for a function in Kotlin that does what the prompt asks to.
 
-Provide your analysis as a JSON object with this exact structure:
-{
-    "summary": "<brief explanation of your assessment>",
-    "clarity_score": <integer 0-100>,
-    "issues": [<array of specific ambiguity issues found>],
-    "suggestions": [<array of specific suggestions to improve clarity>]
-}
+Your main goal is to assess how clear expected behavior is described. This should be expressed as the clarity score equal to the probability percentage of the function written by this prompt behaving as was expected by the prompt author.
 
-Clarity scoring guidelines:
-- 90-100: Very clear, specific, unambiguous (e.g., <example>add args["a"] and args["b"]</example>)
-- 70-89: Mostly clear with minor ambiguities (e.g., <example>multiply args["x"] by 2</example>)
-- 50-69: Somewhat unclear, multiple interpretations possible (e.g., <example>calculate the result</example>)
-- 30-49: Quite ambiguous, significant clarification needed (e.g., <example>process the data</example>)
-- 0-29: Very ambiguous or incomprehensible (e.g., <example>do something</example>)
+Treat the potential function as a black box, so only the externally observable behavior, such as returned value or thrown exceptions in different cases, etc., matters.
 
-Consider these CLEAR prompts that should score 80+:
-- <example>add args["a"] and args["b"]</example>
-- <example>return true if args["num"] is odd and false otherwise</example>
-- <example>count palindromes in Array<String> args["arr"]</example>
-- <example>sort args["numbers"] in ascending order</example>
+Only decrease the clarity score and mention issues when they impact what the function returns, or throws or how it changes it arguments.
+
+Consider these CLEAR prompts that should have clarity score 90+:
+- "add args[\"a\"] and args[\"b\"]"
+- "return true if args[\"num\"] is odd and false otherwise"
+- "count palindromes in Array<String> args[\"arr\"]"
+- "sort args[\"numbers\"] in ascending order"
+- "replace all elements in Array<String> args[\"arr\"] with empty strings"
 
 Look for these major issues that should lower confidence:
 - Vague operations without clear meaning ("process", "handle", "manage", "do something")
 - No clear input/output specification
-- Multiple drastically different interpretations possible
-- Complete lack of context
-- Missing sort order for sorting operations (ascending/descending)
-- Missing comparison criteria or algorithms
-- Ambiguous default behaviors
+
+Provide your analysis as a JSON object with this exact structure:
+{
+    "summary": "<brief explanation of your assessment>",
+    "clarity_score": <integer from 0 to 100 equal to the probability the description will match the function generated from the same prompt>,
+    "issues": [<array of specific examples of ambiguity in desired behavior found>],
+    "suggestions": [<array of specific suggestions to fix ambiguity>]
+}
 
 Example analyses:
-
+<example1>
 Input: "find the maximum value in args[\"numbers\"]"
 Output:
 {
     "summary": "The prompt is clear about data access and operation with no ambiguity.",
-    "clarity_score": 92,
+    "clarity_score": 95,
     "issues": [],
     "suggestions": []
 }
-
+</example1>
+<example2>
 Input: "calculate the average of the data"
 Output:
 {
@@ -92,17 +89,19 @@ Output:
         "No specification of data type or structure"
     ],
     "suggestions": [
-        "Specify 'calculate the average of args[\"values\"]'",
-        "Clarify the data type (e.g., 'calculate the average of the numbers in args[\"dataset\"]')"
+        "Clarify what \"data\" refers to",
+        "Clarify the type or structure of the data"
     ]
 }
-
+</example2>
+<example3>
 Input: "reverse the string args[\"text\"]"
 Output:
 {
     "summary": "The prompt clearly specifies the operation and data access with no ambiguity.",
-    "clarity_score": 95,
+    "clarity_score": 100,
     "issues": [],
     "suggestions": []
 }
+</example3>
 """
