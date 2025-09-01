@@ -13,7 +13,7 @@ import sharepa.nlprogramming.llm.CachingLLMClient
 
 class NLProgramming(
     llmApiKey: String,
-    clarityThresholdForAmbiguityDetection: Int = 90,
+    clarityThresholdForAmbiguityDetection: Int = 80,
     cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
     cacheTtlHours: Long = 7 * 24
 ) {
@@ -44,7 +44,14 @@ class NLProgramming(
     }
 
     fun compileAndCall(input: String, vararg args: Pair<String, Any>): Any? {
-        val ambiguityResult = ambiguityDetector.detectAmbiguity(input)
+        val ambiguityResult = try {
+            ambiguityDetector.detectAmbiguity(input)
+        } catch (e: Exception) {
+            throw NlProgrammingCompilationException(
+                "Unexpected error translating natural language expression to a Kotlin script.",
+                e
+            )
+        }
         if (ambiguityResult.isAmbiguous) {
             throw NlProgrammingAmbiguityException(ambiguityResult)
         }
@@ -53,13 +60,21 @@ class NLProgramming(
             translator.translateToKotlinScriptFunctionExpression(input)
         } catch (e: Exception) {
             throw NlProgrammingCompilationException(
-                "Error translating natural language expression to a Kotlin script.",
+                "Unexpected error translating natural language expression to a Kotlin script.",
                 e
             )
         }
 
-        if (!implementationConfidenceChecker.isImplementationAcceptable(input, translatedFunExpr)) {
-            throw NlProgrammingImplementationMismatchException(translatedFunExpr)
+        val assessmentResult = try {
+            implementationConfidenceChecker.assessImplementationAcceptability(input, translatedFunExpr)
+        } catch (e: Exception) {
+            throw NlProgrammingCompilationException(
+                "Unexpected error translating natural language expression to a Kotlin script.",
+                e
+            )
+        }
+        if (!assessmentResult.isAcceptable) {
+            throw NlProgrammingImplementationMismatchException(translatedFunExpr, assessmentResult.issues)
         }
 
         @Suppress("UNCHECKED_CAST")

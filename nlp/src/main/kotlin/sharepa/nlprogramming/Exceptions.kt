@@ -13,8 +13,19 @@ class NlProgrammingExecutionException(val generatedCode: String, cause: Throwabl
  */
 open class NlProgrammingCompilationException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-class NlProgrammingImplementationMismatchException(val generatedCode: String) :
-    NlProgrammingCompilationException("The code generated doesn't match prompt very well. The prompt must be ambiguous. Generated code:\n$generatedCode")
+class NlProgrammingImplementationMismatchException(
+    val generatedCode: String,
+    val issues: List<String> = emptyList()
+) : NlProgrammingCompilationException(buildImplementationMismatchMessage(generatedCode, issues))
+
+private fun buildImplementationMismatchMessage(code: String, issues: List<String>): String = buildString {
+    appendLine("The code generated doesn't match prompt very well. The prompt must be ambiguous. Generated code:")
+    appendLine(code)
+    if (issues.isNotEmpty()) {
+        appendLine("Issues found:")
+        issues.forEach { issue -> appendLine("- $issue") }
+    }
+}.trimEnd()
 
 class NlProgrammingAmbiguityException(val ambiguityResult: AmbiguityResult) :
     NlProgrammingCompilationException(formatAmbiguityMessage(ambiguityResult))

@@ -7,7 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 private const val URL = "https://api.groq.com/openai/v1/chat/completions"
-private const val MODEL = "llama-3.3-70b-versatile"
+private const val MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"
 private const val TEMPERATURE = 0
 private const val MAX_TOKENS = 4000
 
@@ -24,7 +24,7 @@ internal class GroqLLMClient(private val apiKey: String) : LLMClient {
             .post(requestBody)
             .build()
 
-        Thread.sleep(1100) // to avoid hitting rate limit
+        Thread.sleep(5000) // to avoid hitting rate limit
         return client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 throw Exception("API call failed: ${response.code}")

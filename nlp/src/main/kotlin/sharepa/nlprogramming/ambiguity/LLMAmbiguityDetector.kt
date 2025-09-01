@@ -62,7 +62,8 @@ Consider these CLEAR prompts that should have clarity score 90+:
 
 Look for these major issues that should lower confidence:
 - Vague operations without clear meaning ("process", "handle", "manage", "do something")
-- No clear input/output specification
+- No clear input specification: not clear how to find all required arguments in args map
+- No clear output specification: not clear what user wants to be returned
 
 Provide your analysis as a JSON object with this exact structure:
 {
@@ -112,4 +113,14 @@ Output:
     "suggestions": []
 }
 </example3>
+<example4>
+Input: "find min and max values in Array<Int> args["a"]"
+Output:
+{
+    "summary": "The task is clear, but the output format isn't specified.",
+    "clarity_score": 90,
+    "issues": ["Not clear what to return"],
+    "suggestions": ["Specify the output format (e.g. pair of min to max or pair of indexes of min and max)"]
+}
+</example4>
 """

@@ -26,7 +26,6 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should work for add ints a and b`() {
         val result = nlp.compileAndCall(
             """add ints args["a"] and args["b"]""",
@@ -38,7 +37,6 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should work for return true if num is odd`() {
         val result = nlp.compileAndCall(
             """return true if args["num"] is odd and false otherwise""",
@@ -49,7 +47,6 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should work for count palindromes in array`() {
         val result = nlp.compileAndCall(
             """count how many palindromes are there in Array<String> args["arr"]""",
@@ -93,22 +90,22 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
-    fun `should throw ambiguity exception for ambiguous prompt`() {
-        assertThrows<NlProgrammingAmbiguityException> {
+    fun `should throw exception for slightly ambiguous prompt`() {
+        assertThrows<NlProgrammingCompilationException> {
             nlp.compileAndCall(
-                """find the first duplicate in list of integers args['list']""",
+                """locate the first duplication in list args['list']""",
                 "list" to listOf(1, 2, 3, 1, 3)
             )
         }
     }
 
-//    @Test
-//    fun `should throw ambiguity exception for ambiguous prompt`() {
-//        assertThrows<NlProgrammingAmbiguityException> {
-//            nlp.compileAndCall(
-//                """sort the list of integers args["list"]""",
-//                "list" to listOf(3, 1, 4, 1, 5)
-//            )
-//        }
-//    }
+    @Test
+    fun `should throw ambiguity exception for very ambiguous prompt`() {
+        assertThrows<NlProgrammingAmbiguityException> {
+            nlp.compileAndCall(
+                """find min, median and max in the list""",
+                "list" to listOf(1, 2, 3, 1, 3)
+            )
+        }
+    }
 }

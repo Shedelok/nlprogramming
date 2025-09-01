@@ -1,13 +1,18 @@
 package sharepa.nlprogramming.ambiguity
 
 import sharepa.nlprogramming.llm.LLMClient
+import org.json.JSONObject
 
 internal class LLMImplementationConfidenceChecker(
     private val llmClient: LLMClient,
-    private val confidenceThreshold: Int
+    confidenceThreshold: Int
 ) : ImplementationConfidenceChecker {
+    private val resultFactory = ImplementationAcceptabilityResultFactory(confidenceThreshold)
 
-    override fun isImplementationAcceptable(naturalLanguagePrompt: String, generatedCode: String): Boolean {
+    override fun assessImplementationAcceptability(
+        naturalLanguagePrompt: String,
+        generatedCode: String
+    ): ImplementationAcceptabilityResult {
         val response = llmClient.generateText(
             IMPLEMENTATION_CONFIDENCE_PROMPT,
             """
@@ -20,12 +25,22 @@ internal class LLMImplementationConfidenceChecker(
             """.trimIndent()
         )
 
-        val confidence = parseConfidenceResponse(response)
-        return confidence >= confidenceThreshold
+        return parseAcceptabilityResponse(response)
     }
 
-    private fun parseConfidenceResponse(response: String): Int {
-        return response.trim().toInt()
+    private fun parseAcceptabilityResponse(response: String): ImplementationAcceptabilityResult {
+        val cleanResponse = response.replace("```json", "").replace("```", "").trim()
+        val json = JSONObject(cleanResponse)
+        val confidence = json.getInt("confidence")
+        val issuesArray = json.optJSONArray("issues")
+        val issues = issuesArray?.let { array ->
+            (0 until array.length()).map { array.getString(it) }
+        } ?: emptyList()
+
+        return resultFactory.create(
+            confidence = confidence,
+            issues = issues
+        )
     }
 }
 
@@ -38,11 +53,11 @@ You will receive:
 
 Note, that the code is always a function with a single parameter: <parameter>args: Map<String, Any></parameter> and should access all arguments through this map.
 
-Return ONLY a number from 0-100 representing how well the code's BEHAVIOR matches what the prompt asked for. The goal is to detect situations in which we need to ask user for more clarifications about their prompt, because the prompt can be interpreted differently to what the generated code does.
+Evaluate how well the code's BEHAVIOR matches what the prompt asked for. The goal is to detect situations in which we need to ask user for more clarifications about their prompt, because the prompt can be interpreted differently to what the generated code does.
 
 ONLY evaluate behavioral correctness:
 - Does the code do what the prompt asked?
-- Are inputs, outputs, and operations correct?
+- Are inputs, outputs, and operations correct and what users asked for?
 - Does it produce the expected results?
 
 IGNORE implementation details like:
@@ -51,22 +66,31 @@ IGNORE implementation details like:
 - Performance optimizations
 - Memory usage patterns
 
+Return JSON in this exact format:
+{
+  "confidence": <number 0-100>,
+  "issues": ["issue description 1", "issue description 2", ...]
+}
+
+Provide a confidence score from 0-100 representing how well the code's behavior matches what the prompt asked for.
+Include specific issues in the "issues" array explaining why the confidence isn't 100%.
+
 Examples:
 <example1>
 Prompt: "return sum of int args['a'] and int args['b']"
 Code: (fun(args: Map<String, Any>): Any? { val a = args["a"] as Int; val b = args["b"] as Int; return a + b })
-Answer: 100
+Answer: {"confidence": 100, "issues": []}
 </example1>
 <example2>
 Prompt: "sort array ascending"
 Code: (fun(args: Map<String, Any>): Any? { val arr = args["array"] as IntArray; arr.sort(); return arr })
-Answer: 60
+Answer: {"confidence": 60, "issues": ["Prompt didn't specify how to access the array in the args", "Prompt didn't specify the type of the elements in the array, code assumed Int."]}
 </example2>
 <example3>
 Prompt: "calculate factorial of args['n']"
 Code: (fun(args: Map<String, Any>): Any? { val str = args["n"] as String; return str.reversed() })
-Answer: 0
+Answer: {"confidence": 0, "issues": ["Code reverses string instead of calculating factorial", "Wrong input type (String vs Number)"]}
 </example3>
 
-Return ONLY the number, nothing else.
+Return ONLY the JSON, nothing else.
 """
