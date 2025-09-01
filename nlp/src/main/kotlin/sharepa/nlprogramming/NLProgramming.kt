@@ -67,7 +67,7 @@ class NLProgramming(
             compiler.compileToValue(translatedFunExpr) as (Map<String, Any?>) -> Any?
         } catch (e: Exception) {
             throw NlProgrammingCompilationException(
-                "Error translating natural language expression to a Kotlin script.",
+                "Error translating natural language expression to a Kotlin script. Try making your code less ambiguous.",
                 e
             )
         }
