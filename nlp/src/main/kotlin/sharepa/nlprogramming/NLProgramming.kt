@@ -7,17 +7,29 @@ import sharepa.nlprogramming.ambiguity.AmbiguityDetector
 import sharepa.nlprogramming.ambiguity.LLMAmbiguityDetector
 import sharepa.nlprogramming.ambiguity.ImplementationConfidenceChecker
 import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
+import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.llm.GroqLLMClient
+import sharepa.nlprogramming.llm.CachingLLMClient
 
-class NLProgramming(clarityThresholdForAmbiguityDetection: Int = 90) {
-    private val compiler = BasicJvmKotlinScriptCompiler()
+class NLProgramming(
+    clarityThresholdForAmbiguityDetection: Int = 90,
+    cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
+    cacheTtlHours: Long = 7 * 24
+) {
+    private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
 
     private val translator: NLToKotlinScriptTranslator
     private val ambiguityDetector: AmbiguityDetector
     private val implementationConfidenceChecker: ImplementationConfidenceChecker
 
     init {
-        val llmClient = GroqLLMClient()
+        val llmClient = GroqLLMClient().let { baseClient ->
+            if (cacheSizeLimitKB != null) {
+                CachingLLMClient(baseClient, cacheSizeLimitKB, cacheTtlHours)
+            } else {
+                baseClient
+            }
+        }
         translator = LLMNLToKotlinScriptTranslator(llmClient)
         ambiguityDetector = LLMAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
         implementationConfidenceChecker = LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)

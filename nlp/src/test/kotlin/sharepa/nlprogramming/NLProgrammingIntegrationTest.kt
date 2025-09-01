@@ -22,7 +22,7 @@ class NLProgrammingIntegrationTest {
             "GROQ_API_KEY environment variable is required for integration tests"
         )
 
-        nlp = NLProgramming()
+        nlp = NLProgramming(cacheSizeLimitKB = null)
     }
 
     @Test

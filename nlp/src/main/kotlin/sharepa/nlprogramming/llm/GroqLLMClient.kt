@@ -6,6 +6,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
+private const val URL = "https://api.groq.com/openai/v1/chat/completions"
+private const val MODEL = "llama-3.3-70b-versatile"
+private const val TEMPERATURE = 0
+private const val MAX_TOKENS = 4000
+
 internal class GroqLLMClient : LLMClient {
     private val client = OkHttpClient()
     private val apiKey = System.getenv("GROQ_API_KEY")
@@ -15,7 +20,7 @@ internal class GroqLLMClient : LLMClient {
         val requestBody = createRequestBody(systemPrompt, userMessage)
 
         val request = Request.Builder()
-            .url("https://api.groq.com/openai/v1/chat/completions")
+            .url(URL)
             .header("Authorization", "Bearer $apiKey")
             .header("Content-Type", "application/json")
             .post(requestBody)
@@ -47,13 +52,17 @@ internal class GroqLLMClient : LLMClient {
         }
 
         val jsonBody = JSONObject().apply {
-            put("model", "llama-3.3-70b-versatile")
+            put("model", MODEL)
             put("messages", messages)
-            put("temperature", 0)
-            put("max_tokens", 4000)
+            put("temperature", TEMPERATURE)
+            put("max_tokens", MAX_TOKENS)
         }
 
         return jsonBody.toString().toRequestBody("application/json".toMediaType())
+    }
+
+    override fun describeModel(): String {
+        return "$URL, model $MODEL, temperature $TEMPERATURE, max_tokens $MAX_TOKENS"
     }
 
     private fun extractResponse(responseJson: String): String {

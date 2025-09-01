@@ -20,5 +20,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.json:json:20240303")
 
+    // Cache dependencies
+    implementation("org.ehcache:ehcache:3.10.8")
+
     testImplementation(kotlin("test"))
 }

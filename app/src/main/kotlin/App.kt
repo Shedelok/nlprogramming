@@ -3,7 +3,7 @@ package sharepa.app
 import sharepa.nlprogramming.NLProgramming
 
 fun main() {
-    val nlp = NLProgramming()
+    val nlp = NLProgramming(cacheSizeLimitKB = 1 * 1000)
 
     try {
         val result = nlp.compileAndCall(
