@@ -11,10 +11,8 @@ private const val MODEL = "llama-3.3-70b-versatile"
 private const val TEMPERATURE = 0
 private const val MAX_TOKENS = 4000
 
-internal class GroqLLMClient : LLMClient {
+internal class GroqLLMClient(private val apiKey: String) : LLMClient {
     private val client = OkHttpClient()
-    private val apiKey = System.getenv("GROQ_API_KEY")
-        ?: throw IllegalStateException("GROQ_API_KEY environment variable is required")
 
     override fun generateText(systemPrompt: String, userMessage: String): String {
         val requestBody = createRequestBody(systemPrompt, userMessage)

@@ -12,6 +12,7 @@ import sharepa.nlprogramming.llm.GroqLLMClient
 import sharepa.nlprogramming.llm.CachingLLMClient
 
 class NLProgramming(
+    llmApiKey: String,
     clarityThresholdForAmbiguityDetection: Int = 90,
     cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
     cacheTtlHours: Long = 7 * 24
@@ -23,16 +24,23 @@ class NLProgramming(
     private val implementationConfidenceChecker: ImplementationConfidenceChecker
 
     init {
-        val llmClient = GroqLLMClient().let { baseClient ->
+        val llmClient = when {
+            llmApiKey.startsWith("gsk_") -> GroqLLMClient(llmApiKey)
+            else -> throw IllegalArgumentException(
+                "Unsupported API key format. Supported prefixes: gsk_ (Groq)"
+            )
+        }.let { baseClient ->
             if (cacheSizeLimitKB != null) {
                 CachingLLMClient(baseClient, cacheSizeLimitKB, cacheTtlHours)
             } else {
                 baseClient
             }
         }
+
         translator = LLMNLToKotlinScriptTranslator(llmClient)
         ambiguityDetector = LLMAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
-        implementationConfidenceChecker = LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
+        implementationConfidenceChecker =
+            LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
     }
 
     fun compileAndCall(input: String, vararg args: Pair<String, Any>): Any? {
