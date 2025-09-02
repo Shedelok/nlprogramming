@@ -43,14 +43,11 @@ class NLProgramming(
             LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
     }
 
-    fun compileAndCall(input: String, vararg args: Pair<String, Any>): Any? {
+    fun compileAndCall(input: String, vararg args: Pair<String, Any?>): Any? {
         val ambiguityResult = try {
             ambiguityDetector.detectAmbiguity(input)
         } catch (e: Exception) {
-            throw NlProgrammingCompilationException(
-                "Unexpected error translating natural language expression to a Kotlin script.",
-                e
-            )
+            throw NlProgrammingCompilationException("Unexpected error analyzing the prompt.", e)
         }
         if (ambiguityResult.isAmbiguous) {
             throw NlProgrammingAmbiguityException(ambiguityResult)

@@ -57,6 +57,16 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
+    fun `should work with nulls as arguments`() {
+        val result = nlp.compileAndCall(
+            """ if object args["o"] is null, return string "null", otherwise return string "not-null" """,
+            "o" to null
+        )
+
+        assertEquals("null", result)
+    }
+
+    @Test
     fun `should modify arguments by reference`() {
         val array = intArrayOf(2, 1, 3, -2, 0, 2)
 
