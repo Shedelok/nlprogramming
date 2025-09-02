@@ -7,7 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 private const val URL = "https://api.groq.com/openai/v1/chat/completions"
-private const val MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"
+private const val MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 private const val TEMPERATURE = 0
 private const val MAX_TOKENS = 4000
 

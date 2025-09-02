@@ -7,6 +7,7 @@ import sharepa.nlprogramming.ambiguity.PreliminaryAmbiguityDetector
 import sharepa.nlprogramming.ambiguity.LLMPreliminaryAmbiguityDetector
 import sharepa.nlprogramming.ambiguity.ImplementationConfidenceChecker
 import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
+import sharepa.nlprogramming.cache.FileCacheManager
 import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.llm.GroqLLMClient
 import sharepa.nlprogramming.llm.AnthropicLLMClient
@@ -21,7 +22,7 @@ class NLProgramming(
     cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
     cacheTtlHours: Long = 7 * 24,
     sleepBeforeEachLlmCallMillis: Long? = null // how much to sleep before each LLM call, null = no sleep
-): Closeable {
+) : Closeable {
     private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
 
     private val llmClient: LLMClient = when {
@@ -49,6 +50,7 @@ class NLProgramming(
         LLMPreliminaryAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
     private val implementationConfidenceChecker: ImplementationConfidenceChecker =
         LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
+
 
     fun translateAndCompile(input: String): Function1<Map<String, Any?>, Any?> {
         return try {

@@ -2,14 +2,12 @@ package sharepa.nlprogramming.llm
 
 import org.ehcache.Cache
 import sharepa.nlprogramming.cache.FileCacheManager
+import sharepa.nlprogramming.cache.LLM_RESPONSES_CACHE_NAME
 import java.security.MessageDigest
 
-internal class CachingLLMClient(
-    private val delegate: LLMClient,
-    sizeLimitKB: Long,
-    ttlHours: Long
-) : LLMClient {
-    private val cache: Cache<String, String> = FileCacheManager.getCache("llm-responses", sizeLimitKB, ttlHours)
+internal class CachingLLMClient(private val delegate: LLMClient, sizeLimitKB: Long, ttlHours: Long) : LLMClient {
+    private val cache: Cache<String, String> =
+        FileCacheManager(sizeLimitKB, ttlHours).getCache(LLM_RESPONSES_CACHE_NAME)
     private val delegateDescription = delegate.describeModel()
 
     override fun generateText(systemPrompt: String, userMessage: String): String {
@@ -24,11 +22,6 @@ internal class CachingLLMClient(
 
     override fun describeModel(): String {
         return "Cache over delegate=(${delegate.describeModel()})"
-    }
-
-    override fun close() {
-        FileCacheManager.close()
-        delegate.close()
     }
 
     private fun generateCacheKey(systemPrompt: String, userMessage: String): String {

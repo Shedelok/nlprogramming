@@ -13,7 +13,7 @@ fun main() {
             )(mapOf("arr" to arrayOf("A", "b", "ba", "aba")))
             println("Result: $result")
         } catch (e: Exception) {
-            println("Error: ${e.message}")
+            println("Error: $e")
         }
     }
 }
