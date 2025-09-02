@@ -3,8 +3,8 @@ package sharepa.app
 import sharepa.nlprogramming.NLProgramming
 
 fun main() {
-    val apiKey = System.getenv("GROQ_API_KEY")
-        ?: throw IllegalStateException("GROQ_API_KEY environment variable is required")
+    val apiKey = System.getenv("LLM_API_KEY")
+        ?: throw IllegalStateException("LLM_API_KEY environment variable is required")
 
     val nlp = NLProgramming(apiKey, cacheSizeLimitKB = 1 * 1000, sleepBeforeEachLlmCallMillis = 5000)
 

@@ -9,6 +9,7 @@ import sharepa.nlprogramming.ambiguity.ImplementationConfidenceChecker
 import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
 import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.llm.GroqLLMClient
+import sharepa.nlprogramming.llm.AnthropicLLMClient
 import sharepa.nlprogramming.llm.CachingLLMClient
 import sharepa.nlprogramming.llm.ThrottlingLLMClient
 
@@ -28,8 +29,9 @@ class NLProgramming(
     init {
         val llmClient = when {
             llmApiKey.startsWith("gsk_") -> GroqLLMClient(llmApiKey)
+            llmApiKey.startsWith("sk-ant") -> AnthropicLLMClient(llmApiKey)
             else -> throw IllegalArgumentException(
-                "Unsupported API key format. Supported prefixes: gsk_ (Groq)"
+                "Unsupported API key format. Supported prefixes: gsk_ (Groq), sk-ant (Anthropic)"
             )
         }.let { client ->
             if (sleepBeforeEachLlmCallMillis != null) {
