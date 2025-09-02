@@ -41,9 +41,12 @@ performance and cost of using LLM APIs by not compiling the same prompt twice ev
 
 ## Important Notes
 
-1. This repository is more of a PoC rather than a production-ready dependency for big projects.
-2. You can see examples of what the library is capable of in [NLProgrammingIntegrationTest.kt](nlp/src/test/kotlin/sharepa/nlprogramming/NLProgrammingIntegrationTest.kt). To play with it you can use [App.kt](app/src/main/kotlin/App.kt).
-3. To use the lib (or to play with it) you need an API_KEY. Currently, 2 LLM APIs are supported:
+1. This repository is more of a PoC rather than a production-ready dependency for big projects. Make sure to cover code generated with this library with tests.
+2. To use the lib (or to play with it) you need an API_KEY. Currently, 2 LLM APIs are supported:
     * Groq (https://groq.com/, generate a key at https://console.groq.com/keys): free API with weaker models
     * Anthropic(https://docs.anthropic.com/en/api/messages, generate a key and buy some credits
       at https://console.anthropic.com/settings/keys): better models with usage-based billing.
+3. You can see examples of what the library is capable of in
+   * [NLProgrammingIntegrationTest.kt](nlp/src/test/kotlin/sharepa/nlprogramming/NLProgrammingIntegrationTest.kt),
+   * Executable [App.kt](app/src/main/kotlin/App.kt),
+   * I've also added a tiny vibe-coded web app that has a few usages of the lib. You can see all NLP library usage examples in the demo by [searching for "translateAndCompile" in the demo directory](https://github.com/search?q=repo%3Anlprogramming+path%3Ademo%2F+translateAndCompile&type=code). More info about the demo app in [its README.md](demo/README.md).
