@@ -2,6 +2,8 @@
 
 This demo showcases the NLProgramming library through an interactive web application that displays real-time stock price charts.
 
+**THIS IS 99% VIBE-CODED, AND THE CODE WAS NEVER REVIEWED. ONLY SEE FOR THE LIBRARY USAGE EXAMPLES.**
+
 ## Preview
 
 ![Stock Price Dashboard](screenshot.png)
