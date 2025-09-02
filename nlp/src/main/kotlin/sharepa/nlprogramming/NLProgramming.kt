@@ -3,8 +3,8 @@ package sharepa.nlprogramming
 import sharepa.nlprogramming.translator.NLToKotlinScriptTranslator
 import sharepa.nlprogramming.translator.LLMNLToKotlinScriptTranslator
 import sharepa.nlprogramming.compiler.BasicJvmKotlinScriptCompiler
-import sharepa.nlprogramming.ambiguity.AmbiguityDetector
-import sharepa.nlprogramming.ambiguity.LLMAmbiguityDetector
+import sharepa.nlprogramming.ambiguity.PreliminaryAmbiguityDetector
+import sharepa.nlprogramming.ambiguity.LLMPreliminaryAmbiguityDetector
 import sharepa.nlprogramming.ambiguity.ImplementationConfidenceChecker
 import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
 import sharepa.nlprogramming.compiler.KotlinScriptCompiler
@@ -20,7 +20,7 @@ class NLProgramming(
     private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
 
     private val translator: NLToKotlinScriptTranslator
-    private val ambiguityDetector: AmbiguityDetector
+    private val preliminaryAmbiguityDetector: PreliminaryAmbiguityDetector
     private val implementationConfidenceChecker: ImplementationConfidenceChecker
 
     init {
@@ -38,56 +38,51 @@ class NLProgramming(
         }
 
         translator = LLMNLToKotlinScriptTranslator(llmClient)
-        ambiguityDetector = LLMAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
+        preliminaryAmbiguityDetector = LLMPreliminaryAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
         implementationConfidenceChecker =
             LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
     }
 
-    fun compileAndCall(input: String, vararg args: Pair<String, Any?>): Any? {
-        val ambiguityResult = try {
-            ambiguityDetector.detectAmbiguity(input)
-        } catch (e: Exception) {
-            throw NlProgrammingCompilationException("Unexpected error analyzing the prompt.", e)
-        }
-        if (ambiguityResult.isAmbiguous) {
-            throw NlProgrammingAmbiguityException(ambiguityResult)
-        }
-
-        val translatedFunExpr = try {
-            translator.translateToKotlinScriptFunctionExpression(input)
-        } catch (e: Exception) {
-            throw NlProgrammingCompilationException(
-                "Unexpected error translating natural language expression to a Kotlin script.",
-                e
-            )
-        }
-
-        val assessmentResult = try {
-            implementationConfidenceChecker.assessImplementationAcceptability(input, translatedFunExpr)
-        } catch (e: Exception) {
-            throw NlProgrammingCompilationException(
-                "Unexpected error translating natural language expression to a Kotlin script.",
-                e
-            )
-        }
-        if (!assessmentResult.isAcceptable) {
-            throw NlProgrammingImplementationMismatchException(translatedFunExpr, assessmentResult.issues)
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        val compiledFunExpr = try {
-            compiler.compileToValue(translatedFunExpr) as (Map<String, Any?>) -> Any?
-        } catch (e: Exception) {
-            throw NlProgrammingCompilationException(
-                "Error translating natural language expression to a Kotlin script. Try making your code less ambiguous.",
-                e
-            )
-        }
-
+    fun translateAndCompile(input: String): Function1<Map<String, Any?>, Any?> {
         return try {
-            compiledFunExpr(args.toMap())
+            requireNotAmbiguous(input)
+
+            val translatedFunExpr = translator.translateToKotlinScriptFunctionExpression(input)
+            requireImplementationIsAcceptable(input, translatedFunExpr)
+
+            @Suppress("UNCHECKED_CAST")
+            try {
+                compiler.compileToValue(translatedFunExpr) as (Map<String, Any?>) -> Any?
+            } catch (e: Exception) {
+                throw NlProgrammingCompilationException(
+                    "Error translating prompt to a Kotlin script. Try making your code less ambiguous.",
+                    e
+                )
+            }
         } catch (e: Exception) {
-            throw NlProgrammingExecutionException(translatedFunExpr, e)
+            throw when (e) {
+                is NlProgrammingImplementationMismatchException, is NlProgrammingPreliminaryAmbiguityException -> e
+                else -> NlProgrammingCompilationException(
+                    "Unexpected error translating prompt to a Kotlin script.",
+                    e
+                )
+            }
+        }
+    }
+
+    private fun requireNotAmbiguous(prompt: String) {
+        val preliminaryAmbiguityResult = preliminaryAmbiguityDetector.detectAmbiguity(prompt)
+
+        if (preliminaryAmbiguityResult.isAmbiguous) {
+            throw NlProgrammingPreliminaryAmbiguityException(preliminaryAmbiguityResult)
+        }
+    }
+
+    private fun requireImplementationIsAcceptable(prompt: String, implementation: String) {
+        val assessmentResult = implementationConfidenceChecker.assessImplementationAcceptability(prompt, implementation)
+
+        if (!assessmentResult.isAcceptable) {
+            throw NlProgrammingImplementationMismatchException(implementation, assessmentResult.issues)
         }
     }
 }

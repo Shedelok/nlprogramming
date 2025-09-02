@@ -6,18 +6,18 @@ import org.json.JSONObject
 /**
  * LLM-based ambiguity detector that uses confidence scoring and issue identification.
  */
-internal class LLMAmbiguityDetector(
+internal class LLMPreliminaryAmbiguityDetector(
     private val llmClient: LLMClient,
     clarityThreshold: Int
-) : AmbiguityDetector {
-    private val resultFactory = AmbiguityResultFactory(clarityThreshold)
+) : PreliminaryAmbiguityDetector {
+    private val resultFactory = PreliminaryAmbiguityResultFactory(clarityThreshold)
 
-    override fun detectAmbiguity(naturalLanguageText: String): AmbiguityResult {
+    override fun detectAmbiguity(naturalLanguageText: String): PreliminaryAmbiguityResult {
         val response = llmClient.generateText(AMBIGUITY_DETECTION_PROMPT, naturalLanguageText)
         return parseAmbiguityResponse(response)
     }
 
-    private fun parseAmbiguityResponse(response: String): AmbiguityResult {
+    private fun parseAmbiguityResponse(response: String): PreliminaryAmbiguityResult {
         val cleanResponse = response.trim()
             .removePrefix("```json")
             .removePrefix("```")

@@ -1,7 +1,7 @@
 package sharepa.nlprogramming.ambiguity
 
 @ConsistentCopyVisibility
-data class AmbiguityResult internal constructor(
+data class PreliminaryAmbiguityResult internal constructor(
     /**
      * Clarity score from 0 to 100, where higher values indicate clearer prompts.
      */
@@ -14,14 +14,14 @@ data class AmbiguityResult internal constructor(
     val isAmbiguous = clarityScore < clarityThreshold
 }
 
-class AmbiguityResultFactory(private val clarityThreshold: Int) {
+class PreliminaryAmbiguityResultFactory(private val clarityThreshold: Int) {
     fun create(
         clarityScore: Int,
         summary: String,
         issues: List<String> = emptyList(),
         suggestions: List<String> = emptyList()
-    ): AmbiguityResult {
-        return AmbiguityResult(
+    ): PreliminaryAmbiguityResult {
+        return PreliminaryAmbiguityResult(
             clarityScore = clarityScore,
             summary = summary,
             issues = issues,
