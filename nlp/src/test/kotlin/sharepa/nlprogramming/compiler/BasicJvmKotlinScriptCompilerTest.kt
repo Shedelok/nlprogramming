@@ -37,6 +37,19 @@ class BasicJvmKotlinScriptCompilerTest {
     }
 
     @Test
+    fun `successfully compiles code with imports`() {
+        val code = """
+            import java.util.UUID
+            val a = UUID.randomUUID()
+            a
+        """.trimIndent()
+
+        val result = compiler.compileToValue(code)
+
+        assertTrue(result is java.util.UUID)
+    }
+
+    @Test
     fun `should throw exception for invalid code`() {
         val invalidCode = "this is not valid code"
 
