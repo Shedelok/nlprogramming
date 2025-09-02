@@ -100,6 +100,18 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
+    fun `should pass thrown exceptions through`() {
+        val thrown = assertThrows<NlProgrammingExecutionException> {
+            nlp.compileAndCall(
+                """ given string args["s"] throw an illegal argument exception if it's empty """,
+                "s" to ""
+            )
+        }
+
+        assertTrue(thrown.cause is IllegalArgumentException)
+    }
+
+    @Test
     fun `should throw exception for slightly ambiguous prompt`() {
         assertThrows<NlProgrammingCompilationException> {
             nlp.compileAndCall(
