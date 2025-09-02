@@ -7,16 +7,35 @@ import org.ehcache.config.builders.CacheManagerBuilder
 import org.ehcache.config.builders.ExpiryPolicyBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
 import org.ehcache.config.units.MemoryUnit
+import java.io.Closeable
 import java.io.File
 import java.time.Duration
 
 private val CACHE_DIRECTORY = File(System.getProperty("java.io.tmpdir"), "nlprogramming_v1")
 
-internal object FileCacheManager {
-    private val cacheManager: CacheManager by lazy {
-        CacheManagerBuilder.newCacheManagerBuilder()
-            .with(CacheManagerBuilder.persistence(CACHE_DIRECTORY))
-            .build(true)
+internal object FileCacheManager : Closeable {
+    private var cacheManager: CacheManager? = null
+
+    private fun getCacheManager(sizeLimitKB: Long, ttlHours: Long): CacheManager {
+        if (cacheManager == null) {
+            val cacheConfig = CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                String::class.java,
+                String::class.java,
+                ResourcePoolsBuilder.newResourcePoolsBuilder()
+                    .heap(100, org.ehcache.config.units.EntryUnit.ENTRIES)
+                    .disk(sizeLimitKB, MemoryUnit.KB, true) // true for persistent
+                    .build()
+            )
+                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofHours(ttlHours)))
+                .build()
+
+            cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+                .with(CacheManagerBuilder.persistence(CACHE_DIRECTORY))
+                .withCache("llm-responses", cacheConfig)
+                .build(true)
+
+        }
+        return cacheManager!!
     }
 
     fun getCache(
@@ -24,21 +43,12 @@ internal object FileCacheManager {
         sizeLimitKB: Long,
         ttlHours: Long
     ): Cache<String, String> {
-        return cacheManager.getCache(cacheName, String::class.java, String::class.java)
-            ?: createCache(cacheName, sizeLimitKB, ttlHours)
+        val manager = getCacheManager(sizeLimitKB, ttlHours)
+        val existingCache = manager.getCache(cacheName, String::class.java, String::class.java)
+        return existingCache ?: throw IllegalStateException("Cache should have been pre-configured")
     }
 
-    private fun createCache(name: String, sizeLimitKB: Long, ttlHours: Long): Cache<String, String> {
-        val cacheConfig = CacheConfigurationBuilder.newCacheConfigurationBuilder(
-            String::class.java,
-            String::class.java,
-            ResourcePoolsBuilder.newResourcePoolsBuilder()
-                .disk(sizeLimitKB, MemoryUnit.KB)
-                .build()
-        )
-            .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofHours(ttlHours)))
-            .build()
-
-        return cacheManager.createCache(name, cacheConfig)
+    override fun close() {
+        cacheManager?.close()
     }
 }

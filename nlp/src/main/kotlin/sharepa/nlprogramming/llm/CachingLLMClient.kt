@@ -18,13 +18,17 @@ internal class CachingLLMClient(
         cache.get(cacheKey)?.let { return it }
 
         val response = delegate.generateText(systemPrompt, userMessage)
-
         cache.put(cacheKey, response)
         return response
     }
 
     override fun describeModel(): String {
         return "Cache over delegate=(${delegate.describeModel()})"
+    }
+
+    override fun close() {
+        FileCacheManager.close()
+        delegate.close()
     }
 
     private fun generateCacheKey(systemPrompt: String, userMessage: String): String {

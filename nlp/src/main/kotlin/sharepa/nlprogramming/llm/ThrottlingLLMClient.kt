@@ -11,6 +11,10 @@ internal class ThrottlingLLMClient(
     }
 
     override fun describeModel(): String {
-        return "Throttled(${sleepBeforeEachCallMillis}ms) over delegate=(${delegate.describeModel()})"
+        return "Throttled(${sleepBeforeEachCallMillis}ms) delegate=(${delegate.describeModel()})"
+    }
+
+    override fun close() {
+        delegate.close()
     }
 }

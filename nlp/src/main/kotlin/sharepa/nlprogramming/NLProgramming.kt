@@ -11,7 +11,9 @@ import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.llm.GroqLLMClient
 import sharepa.nlprogramming.llm.AnthropicLLMClient
 import sharepa.nlprogramming.llm.CachingLLMClient
+import sharepa.nlprogramming.llm.LLMClient
 import sharepa.nlprogramming.llm.ThrottlingLLMClient
+import java.io.Closeable
 
 class NLProgramming(
     llmApiKey: String,
@@ -19,39 +21,34 @@ class NLProgramming(
     cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
     cacheTtlHours: Long = 7 * 24,
     sleepBeforeEachLlmCallMillis: Long? = null // how much to sleep before each LLM call, null = no sleep
-) {
+): Closeable {
     private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
 
-    private val translator: NLToKotlinScriptTranslator
-    private val preliminaryAmbiguityDetector: PreliminaryAmbiguityDetector
-    private val implementationConfidenceChecker: ImplementationConfidenceChecker
-
-    init {
-        val llmClient = when {
-            llmApiKey.startsWith("gsk_") -> GroqLLMClient(llmApiKey)
-            llmApiKey.startsWith("sk-ant") -> AnthropicLLMClient(llmApiKey)
-            else -> throw IllegalArgumentException(
-                "Unsupported API key format. Supported prefixes: gsk_ (Groq), sk-ant (Anthropic)"
-            )
-        }.let { client ->
-            if (sleepBeforeEachLlmCallMillis != null) {
-                ThrottlingLLMClient(client, sleepBeforeEachLlmCallMillis)
-            } else {
-                client
-            }
-        }.let { client ->
-            if (cacheSizeLimitKB != null) {
-                CachingLLMClient(client, cacheSizeLimitKB, cacheTtlHours)
-            } else {
-                client
-            }
+    private val llmClient: LLMClient = when {
+        llmApiKey.startsWith("gsk_") -> GroqLLMClient(llmApiKey)
+        llmApiKey.startsWith("sk-ant") -> AnthropicLLMClient(llmApiKey)
+        else -> throw IllegalArgumentException(
+            "Unsupported API key format. Supported prefixes: gsk_ (Groq), sk-ant (Anthropic)"
+        )
+    }.let { client ->
+        if (sleepBeforeEachLlmCallMillis != null) {
+            ThrottlingLLMClient(client, sleepBeforeEachLlmCallMillis)
+        } else {
+            client
         }
-
-        translator = LLMNLToKotlinScriptTranslator(llmClient)
-        preliminaryAmbiguityDetector = LLMPreliminaryAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
-        implementationConfidenceChecker =
-            LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
+    }.let { client ->
+        if (cacheSizeLimitKB != null) {
+            CachingLLMClient(client, cacheSizeLimitKB, cacheTtlHours)
+        } else {
+            client
+        }
     }
+
+    private val translator: NLToKotlinScriptTranslator = LLMNLToKotlinScriptTranslator(llmClient)
+    private val preliminaryAmbiguityDetector: PreliminaryAmbiguityDetector =
+        LLMPreliminaryAmbiguityDetector(llmClient, clarityThresholdForAmbiguityDetection)
+    private val implementationConfidenceChecker: ImplementationConfidenceChecker =
+        LLMImplementationConfidenceChecker(llmClient, clarityThresholdForAmbiguityDetection)
 
     fun translateAndCompile(input: String): Function1<Map<String, Any?>, Any?> {
         return try {
@@ -94,5 +91,9 @@ class NLProgramming(
         if (!assessmentResult.isAcceptable) {
             throw NlProgrammingImplementationMismatchException(implementation, assessmentResult.issues)
         }
+    }
+
+    override fun close() {
+        llmClient.close()
     }
 }
