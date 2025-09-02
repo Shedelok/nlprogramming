@@ -11,7 +11,9 @@ private const val MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"
 private const val TEMPERATURE = 0
 private const val MAX_TOKENS = 4000
 
-internal class GroqLLMClient(private val apiKey: String) : LLMClient {
+internal class GroqLLMClient(
+    private val apiKey: String
+) : LLMClient {
     private val client = OkHttpClient()
 
     override fun generateText(systemPrompt: String, userMessage: String): String {
@@ -24,7 +26,6 @@ internal class GroqLLMClient(private val apiKey: String) : LLMClient {
             .post(requestBody)
             .build()
 
-        Thread.sleep(5000) // to avoid hitting rate limit
         return client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 throw Exception("API call failed: ${response.code}")

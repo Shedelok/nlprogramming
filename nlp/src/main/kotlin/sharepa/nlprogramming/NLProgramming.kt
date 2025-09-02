@@ -10,12 +10,14 @@ import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
 import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.llm.GroqLLMClient
 import sharepa.nlprogramming.llm.CachingLLMClient
+import sharepa.nlprogramming.llm.ThrottlingLLMClient
 
 class NLProgramming(
     llmApiKey: String,
     clarityThresholdForAmbiguityDetection: Int = 80,
     cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
-    cacheTtlHours: Long = 7 * 24
+    cacheTtlHours: Long = 7 * 24,
+    sleepBeforeEachLlmCallMillis: Long? = null // how much to sleep before each LLM call, null = no sleep
 ) {
     private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
 
@@ -29,11 +31,17 @@ class NLProgramming(
             else -> throw IllegalArgumentException(
                 "Unsupported API key format. Supported prefixes: gsk_ (Groq)"
             )
-        }.let { baseClient ->
-            if (cacheSizeLimitKB != null) {
-                CachingLLMClient(baseClient, cacheSizeLimitKB, cacheTtlHours)
+        }.let { client ->
+            if (sleepBeforeEachLlmCallMillis != null) {
+                ThrottlingLLMClient(client, sleepBeforeEachLlmCallMillis)
             } else {
-                baseClient
+                client
+            }
+        }.let { client ->
+            if (cacheSizeLimitKB != null) {
+                CachingLLMClient(client, cacheSizeLimitKB, cacheTtlHours)
+            } else {
+                client
             }
         }
 
