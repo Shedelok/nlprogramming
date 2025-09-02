@@ -31,10 +31,12 @@ class StockDataService(private val nlp: NLProgramming) {
         try {
             println("SERVICE: Fetching data for symbol: $symbol")
             
-            val endTime = System.currentTimeMillis() / 1000
+            val endTime = nlp.translateAndCompile("get current unix timestamp in seconds")(emptyMap()) as Long
             println("SERVICE: End time: $endTime")
             
-            val startTime = calculateStartTime(endTime)
+            val startTime = nlp.translateAndCompile(
+                "calculate unix timestamp for 30 days before given timestamp args[\"endTime\"]"
+            )(mapOf("endTime" to endTime))
             println("SERVICE: Start time: $startTime (30 days ago)")
             
             val url = "https://query2.finance.yahoo.com/v8/finance/chart/$symbol" +
@@ -68,37 +70,21 @@ class StockDataService(private val nlp: NLProgramming) {
         }
     }
     
-    private fun calculateStartTime(endTime: Long): Long {
-        try {
-            println("SERVICE: Compiling NLP function for start time calculation")
-            val calculateStartTimeFunc = nlp.translateAndCompile(
-                "calculate unix timestamp for 30 days before given timestamp args[\"endTime\"]"
-            )
-            println("SERVICE: NLP function compiled, executing with endTime: $endTime")
-            val result = calculateStartTimeFunc(mapOf("endTime" to endTime)) as Long
-            println("SERVICE: Start time calculated: $result")
-            return result
-        } catch (e: Exception) {
-            println("ERROR in calculateStartTime: ${e.message}")
-            e.printStackTrace()
-            throw e
-        }
-    }
-    
     private fun convertToPrices(timestamps: List<Long>, prices: List<Double?>): List<StockPrice> {
         try {
             println("SERVICE: Converting ${timestamps.size} timestamps to prices")
-            val convertTimestampFunc = nlp.translateAndCompile(
-                "convert unix timestamp args[\"timestamp\"] to date string in format yyyy-MM-dd"
+            val processDataFunc = nlp.translateAndCompile(
+                """
+                import sharepa.demo.model.StockPrice
+                combine timestamps args["timestamps"] with prices args["prices"], 
+                skip entries where price is null,
+                convert each timestamp to yyyy-MM-dd date format,
+                return list of StockPrice objects with date and price
+                """.trimIndent()
             )
-            println("SERVICE: NLP timestamp conversion function compiled")
+            println("SERVICE: NLP data processing function compiled")
             
-            val result = timestamps.zip(prices).mapNotNull { (timestamp, price) ->
-                if (price != null) {
-                    val dateString = convertTimestampFunc(mapOf("timestamp" to timestamp)) as String
-                    StockPrice(dateString, price)
-                } else null
-            }
+            val result = processDataFunc(mapOf("timestamps" to timestamps, "prices" to prices)) as List<StockPrice>
             println("SERVICE: Converted to ${result.size} valid price entries")
             return result
         } catch (e: Exception) {
