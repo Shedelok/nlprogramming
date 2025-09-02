@@ -2,13 +2,10 @@ package sharepa.nlprogramming
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import java.util.concurrent.TimeUnit
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class NLProgrammingIntegrationTest {
 
@@ -16,10 +13,10 @@ class NLProgrammingIntegrationTest {
 
     @BeforeEach
     fun setUp() {
-        val apiKey = System.getenv("GROQ_API_KEY")
+        val apiKey = System.getenv("LLM_API_KEY")
         assumeTrue(
             apiKey != null && apiKey.isNotBlank(),
-            "GROQ_API_KEY environment variable is required for integration tests"
+            "LLM_API_KEY environment variable is required for integration tests"
         )
 
         nlp = NLProgramming(apiKey, cacheSizeLimitKB = null, sleepBeforeEachLlmCallMillis = 5000)
@@ -109,7 +106,7 @@ class NLProgrammingIntegrationTest {
     @Test
     fun `should throw exception for slightly ambiguous prompt`() {
         assertThrows<NlProgrammingCompilationException> {
-            nlp.translateAndCompile("""locate the first duplication in list args['list']""")
+            nlp.translateAndCompile("""locate first zero in 'list'""")
         }
     }
 

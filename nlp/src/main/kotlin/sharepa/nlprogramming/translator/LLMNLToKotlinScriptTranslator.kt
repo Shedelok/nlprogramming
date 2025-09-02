@@ -21,7 +21,7 @@ private const val KOTLIN_SCRIPT_SYSTEM_PROMPT = """
 You are a Kotlin script expression generator. Convert the following description to a complete Kotlin script expression.
 
 Rules:
-1. Return ONLY a function expression wrapped in parentheses: (fun(args: Map<String, Any>): Any? { ... }) with required import statements in front of it.
+1. Return the code in a function expression wrapped in parentheses: (fun(args: Map<String, Any>): Any? { ... }). If code requires any imports, add them before the function expression.
 2. Access input values using args["key_name"] syntax inside the function
 3. Be attentive to the data types mentioned in the users's prompt. Use types mentioned (or more generic types if possible).
 4. Use appropriate type casting when accessing args values
