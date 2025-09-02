@@ -34,7 +34,7 @@ class NLProgramming(
     clarityThresholdForAmbiguityDetection: Int = 80,
     cacheSizeLimitKB: Long? = null, // how much disk space this class is allowed to use (during and between runtimes), null = no cache
     cacheTtlHours: Long = 7 * 24,
-    sleepBeforeEachLlmCallMillis: Long? = null // how much to sleep before each LLM call, null = no sleep
+    sleepBeforeEachLLMCallMillis: Long? = null // how much to sleep before each LLM call, null = no sleep
 ) : Closeable {
     private val compiler: KotlinScriptCompiler = BasicJvmKotlinScriptCompiler()
 
@@ -45,8 +45,8 @@ class NLProgramming(
             "Unsupported API key format. Supported prefixes: gsk_ (Groq), sk-ant (Anthropic)"
         )
     }.let { client ->
-        if (sleepBeforeEachLlmCallMillis != null) {
-            ThrottlingLLMClient(client, sleepBeforeEachLlmCallMillis)
+        if (sleepBeforeEachLLMCallMillis != null) {
+            ThrottlingLLMClient(client, sleepBeforeEachLLMCallMillis)
         } else {
             client
         }

@@ -19,7 +19,7 @@ class NLProgrammingIntegrationTest {
             "LLM_API_KEY environment variable is required for integration tests"
         )
 
-        nlp = NLProgramming(apiKey, cacheSizeLimitKB = null, sleepBeforeEachLlmCallMillis = 5000)
+        nlp = NLProgramming(apiKey, cacheSizeLimitKB = null, sleepBeforeEachLLMCallMillis = 5000)
     }
 
     @Test
