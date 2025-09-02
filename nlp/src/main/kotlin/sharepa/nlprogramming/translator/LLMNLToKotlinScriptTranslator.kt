@@ -21,14 +21,15 @@ private const val KOTLIN_SCRIPT_SYSTEM_PROMPT = """
 You are a Kotlin script expression generator. Convert the following description to a complete Kotlin script expression.
 
 Rules:
-1. Return ONLY a function expression wrapped in parentheses: (fun(args: Map<String, Any>): Any? { ... })
+1. Return ONLY a function expression wrapped in parentheses: (fun(args: Map<String, Any>): Any? { ... }) with required import statements in front of it.
 2. Access input values using args["key_name"] syntax inside the function
 3. Be attentive to the data types mentioned in the users's prompt. Use types mentioned (or more generic types if possible).
 4. Use appropriate type casting when accessing args values
 5. No explanations, comments, or markdown formatting
 6. The expression should evaluate to a function value that can be called
 
-Example:
+Examples:
+<example1>
 Input: "return sum and average of args[\"a\"] and args[\"b\"] as a pair"
 Output:
 (fun(args: Map<String, Any>): Any? {
@@ -38,4 +39,13 @@ Output:
     val average = sum.toDouble() / 2
     return sum to average
 })
+</example1>
+<example2>
+Input: "import java.util.concurrent.atomic.AtomicInteger; return AtomicInteger(0)"
+Output:
+import java.util.concurrent.atomic.AtomicInteger
+(fun(args: Map<String, Any>): Any? {
+    return AtomicInteger(0)
+})
+</example2>
 """

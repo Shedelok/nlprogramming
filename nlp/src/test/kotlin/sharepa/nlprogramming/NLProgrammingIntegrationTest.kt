@@ -66,6 +66,16 @@ class NLProgrammingIntegrationTest {
     }
 
     @Test
+    fun `should work with imports`() {
+        val result =
+            nlp.translateAndCompile(""" import java.util.UUID; return a random UUID """)(
+                mapOf("o" to null)
+            )
+
+        assertTrue(result is java.util.UUID)
+    }
+
+    @Test
     fun `should modify arguments by reference`() {
         val array = intArrayOf(2, 1, 3, -2, 0, 2)
 
