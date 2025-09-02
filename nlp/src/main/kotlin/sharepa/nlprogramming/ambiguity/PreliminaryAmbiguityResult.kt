@@ -9,7 +9,7 @@ data class PreliminaryAmbiguityResult internal constructor(
     val summary: String,
     val issues: List<String> = emptyList(),
     val suggestions: List<String> = emptyList(),
-    private val clarityThreshold: Int
+    val clarityThreshold: Int
 ) {
     val isAmbiguous = clarityScore < clarityThreshold
 }

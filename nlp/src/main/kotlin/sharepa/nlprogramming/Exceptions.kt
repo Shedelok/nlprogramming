@@ -1,5 +1,6 @@
 package sharepa.nlprogramming
 
+import sharepa.nlprogramming.ambiguity.ImplementationAcceptabilityResult
 import sharepa.nlprogramming.ambiguity.PreliminaryAmbiguityResult
 
 /**
@@ -10,7 +11,8 @@ open class NlProgrammingCompilationException(message: String, cause: Throwable? 
 /**
  * Exception raised when the user's prompt needs clarification.
  */
-abstract class NlProgrammingAmbiguityException(message: String, cause: Throwable? = null) : NlProgrammingCompilationException(message, cause)
+abstract class NlProgrammingAmbiguityException(message: String, cause: Throwable? = null) :
+    NlProgrammingCompilationException(message, cause)
 
 class NlProgrammingPreliminaryAmbiguityException(val preliminaryAmbiguityResult: PreliminaryAmbiguityResult) :
     NlProgrammingAmbiguityException(formatAmbiguityMessage(preliminaryAmbiguityResult))
@@ -28,16 +30,23 @@ private fun formatAmbiguityMessage(result: PreliminaryAmbiguityResult): String =
 
 class NlProgrammingImplementationMismatchException(
     val generatedCode: String,
-    val issues: List<String> = emptyList()
-) : NlProgrammingAmbiguityException(buildImplementationMismatchMessage(generatedCode, issues))
+    val implementationAcceptabilityResult: ImplementationAcceptabilityResult
+) : NlProgrammingAmbiguityException(
+    buildImplementationMismatchMessage(
+        generatedCode,
+        implementationAcceptabilityResult
+    )
+)
 
-private fun buildImplementationMismatchMessage(code: String, issues: List<String>): String = buildString {
-    appendLine("The code generated doesn't match prompt very well. The prompt must be ambiguous. Generated code:")
-    appendLine(code)
-    if (issues.isNotEmpty()) {
-        appendLine("Issues found:")
-        issues.forEach { issue -> appendLine("- $issue") }
-    }
-}.trimEnd()
+private fun buildImplementationMismatchMessage(code: String, assessmentResult: ImplementationAcceptabilityResult): String =
+    buildString {
+        appendLine("The code generated doesn't match prompt very well. The prompt must be ambiguous. Generated code:")
+        appendLine(code)
+        appendLine("Confidence: ${assessmentResult.confidence}% (threshold: ${assessmentResult.confidenceThreshold}%)")
+        if (assessmentResult.issues.isNotEmpty()) {
+            appendLine("Issues found:")
+            assessmentResult.issues.forEach { issue -> appendLine("- $issue") }
+        }
+    }.trimEnd()
 
 

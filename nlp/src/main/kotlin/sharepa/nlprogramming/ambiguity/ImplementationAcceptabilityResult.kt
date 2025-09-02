@@ -7,7 +7,7 @@ data class ImplementationAcceptabilityResult internal constructor(
      */
     val confidence: Int,
     val issues: List<String> = emptyList(),
-    private val confidenceThreshold: Int
+    val confidenceThreshold: Int
 ) {
     val isAcceptable = confidence >= confidenceThreshold
 }

@@ -104,7 +104,7 @@ class NLProgramming(
         val assessmentResult = implementationConfidenceChecker.assessImplementationAcceptability(prompt, implementation)
 
         if (!assessmentResult.isAcceptable) {
-            throw NlProgrammingImplementationMismatchException(implementation, assessmentResult.issues)
+            throw NlProgrammingImplementationMismatchException(implementation, assessmentResult)
         }
     }
 
