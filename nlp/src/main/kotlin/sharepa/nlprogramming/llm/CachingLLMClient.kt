@@ -6,8 +6,8 @@ import sharepa.nlprogramming.cache.LLM_RESPONSES_CACHE_NAME
 import java.security.MessageDigest
 
 internal class CachingLLMClient(private val delegate: LLMClient, sizeLimitKB: Long, ttlHours: Long) : LLMClient {
-    private val cache: Cache<String, String> =
-        FileCacheManager(sizeLimitKB, ttlHours).getCache(LLM_RESPONSES_CACHE_NAME)
+    private val cacheManager: FileCacheManager = FileCacheManager(sizeLimitKB, ttlHours)
+    private val cache: Cache<String, String> = cacheManager.getCache(LLM_RESPONSES_CACHE_NAME)
     private val delegateDescription = delegate.describeModel()
 
     override fun generateText(systemPrompt: String, userMessage: String): String {
@@ -30,5 +30,10 @@ internal class CachingLLMClient(private val delegate: LLMClient, sizeLimitKB: Lo
             update(systemPrompt.toByteArray())
             update(userMessage.toByteArray())
         }.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    override fun close() {
+        cacheManager.close()
+        delegate.close()
     }
 }
