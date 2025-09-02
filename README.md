@@ -46,7 +46,7 @@ performance and cost of using LLM APIs by not compiling the same prompt twice ev
 1. This repository is more of a PoC rather than a production-ready dependency for big projects. Make sure to cover code generated with this library with tests.
 2. To use the lib (or to play with it) you need an API_KEY. Currently, 2 LLM APIs are supported:
     * Groq (https://groq.com/, generate a key at https://console.groq.com/keys): free API with weaker models
-    * Anthropic(https://docs.anthropic.com/en/api/messages, generate a key and buy some credits
+    * Anthropic (https://docs.anthropic.com/en/api/messages, generate a key and buy some credits
       at https://console.anthropic.com/settings/keys): better models with usage-based billing.
 
 ## More Examples + Demo
