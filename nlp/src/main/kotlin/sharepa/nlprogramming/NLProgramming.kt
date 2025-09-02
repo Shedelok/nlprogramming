@@ -7,7 +7,6 @@ import sharepa.nlprogramming.ambiguity.PreliminaryAmbiguityDetector
 import sharepa.nlprogramming.ambiguity.LLMPreliminaryAmbiguityDetector
 import sharepa.nlprogramming.ambiguity.ImplementationConfidenceChecker
 import sharepa.nlprogramming.ambiguity.LLMImplementationConfidenceChecker
-import sharepa.nlprogramming.cache.FileCacheManager
 import sharepa.nlprogramming.compiler.KotlinScriptCompiler
 import sharepa.nlprogramming.llm.GroqLLMClient
 import sharepa.nlprogramming.llm.AnthropicLLMClient
@@ -16,6 +15,20 @@ import sharepa.nlprogramming.llm.LLMClient
 import sharepa.nlprogramming.llm.ThrottlingLLMClient
 import java.io.Closeable
 
+/**
+ * Natural language programming library that translates human-readable instructions into executable Kotlin code.
+ *
+ * Converts natural language prompts into compiled functions using LLM translation and ambiguity detection.
+ * Supports caching, throttling, and validation to ensure reliable code generation.
+ *
+ * Usage:
+ * ```kotlin
+ * NLProgramming(llmApiKey, cacheSizeLimitKB = 50 * 1000).use { nlp ->
+ *     val fn = nlp.translateAndCompile("calculate sum of numbers in Array args[\"numbers\"]")
+ *     val result = fn(mapOf("numbers" to arrayOf(1, 2, 3, 4, 5)))
+ * }
+ * ```
+ */
 class NLProgramming(
     llmApiKey: String,
     clarityThresholdForAmbiguityDetection: Int = 80,
@@ -95,6 +108,9 @@ class NLProgramming(
         }
     }
 
+    /**
+     * This method has to be closed to save cache to disk
+     */
     override fun close() {
         llmClient.close()
     }

@@ -6,14 +6,16 @@ fun main() {
     val apiKey = System.getenv("LLM_API_KEY")
         ?: throw IllegalStateException("LLM_API_KEY environment variable is required")
 
-    NLProgramming(apiKey, cacheSizeLimitKB = 50 * 1000, sleepBeforeEachLlmCallMillis = 1000).use { nlp ->
-        try {
-            val result = nlp.translateAndCompile(
-                """calculate number of palindrome strings in Array args["arr"] (not list)"""
-            )(mapOf("arr" to arrayOf("A", "b", "ba", "aba")))
-            println("Result: $result")
-        } catch (e: Exception) {
-            println("Error: $e")
-        }
+    NLProgramming(apiKey, cacheSizeLimitKB = 50 * 1000).use { nlp ->
+        val calcPalindromes = nlp.translateAndCompile(
+            """
+                calculate number of palindrome strings in list args["arr"].
+                if the given list is empty, throw IllegalArgumentException
+               """.trimIndent()
+        )
+
+        println(calcPalindromes(mapOf("arr" to listOf("ana", "bob")))) // prints 2
+        println(calcPalindromes(mapOf("arr" to listOf("xy", "madam")))) // prints 1
+        println(calcPalindromes(mapOf("arr" to emptyList<String>()))) // throws IllegalArgumentException
     }
 }
