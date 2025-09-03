@@ -23,7 +23,17 @@ internal class AnthropicLLMClient(
         .build()
 
     override fun generateText(systemPrompt: String, userMessage: String): String {
-        val requestBody = createRequestBody(systemPrompt, userMessage)
+        return callAnthropicApi(systemPrompt, userMessage, prefill = null)
+    }
+
+    override fun generateJson(systemPrompt: String, userMessage: String): JSONObject {
+        val prefill = "{"
+        val anthropicResponse = callAnthropicApi(systemPrompt, userMessage, prefill)
+        return parseJsonFromLLMResponse(prefill + anthropicResponse)
+    }
+
+    private fun callAnthropicApi(systemPrompt: String, userMessage: String, prefill: String?): String {
+        val requestBody = createRequestBody(systemPrompt, userMessage, prefill)
 
         val request = Request.Builder()
             .url(URL)
@@ -41,16 +51,26 @@ internal class AnthropicLLMClient(
                 throw Exception("API call failed: ${response.code} - $responseBody")
             }
 
-            extractResponse(responseBody)
+            JSONObject(responseBody)
+                .getJSONArray("content")
+                .getJSONObject(0)
+                .getString("text")
         }
     }
 
-    private fun createRequestBody(systemPrompt: String, userMessage: String): RequestBody {
+    private fun createRequestBody(systemPrompt: String, userMessage: String, prefill: String?): RequestBody {
         val messages = JSONArray().apply {
             put(JSONObject().apply {
                 put("role", "user")
                 put("content", userMessage)
             })
+
+            if (prefill != null) {
+                put(JSONObject().apply {
+                    put("role", "assistant")
+                    put("content", prefill)
+                })
+            }
         }
 
         val jsonBody = JSONObject().apply {
@@ -66,12 +86,5 @@ internal class AnthropicLLMClient(
 
     override fun describeModel(): String {
         return "$URL, model $MODEL, version: $ANTHROPIC_VERSION, temperature $TEMPERATURE, max_tokens $MAX_TOKENS"
-    }
-
-    private fun extractResponse(responseJson: String): String {
-        val json = JSONObject(responseJson)
-        val content = json.getJSONArray("content")
-        val firstContent = content.getJSONObject(0)
-        return firstContent.getString("text")
     }
 }

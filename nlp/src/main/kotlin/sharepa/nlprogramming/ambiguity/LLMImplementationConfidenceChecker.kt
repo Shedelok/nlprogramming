@@ -1,7 +1,7 @@
 package sharepa.nlprogramming.ambiguity
 
-import sharepa.nlprogramming.llm.LLMClient
 import org.json.JSONObject
+import sharepa.nlprogramming.llm.LLMClient
 
 internal class LLMImplementationConfidenceChecker(
     private val llmClient: LLMClient,
@@ -13,7 +13,7 @@ internal class LLMImplementationConfidenceChecker(
         naturalLanguagePrompt: String,
         generatedCode: String
     ): ImplementationAcceptabilityResult {
-        val response = llmClient.generateText(
+        val response = llmClient.generateJson(
             IMPLEMENTATION_CONFIDENCE_PROMPT,
             """
               <naturalLanguagePrompt>
@@ -28,11 +28,9 @@ internal class LLMImplementationConfidenceChecker(
         return parseAcceptabilityResponse(response)
     }
 
-    private fun parseAcceptabilityResponse(response: String): ImplementationAcceptabilityResult {
-        val json = parseJsonFromLLMResponse(response)
-
-        val confidence = json.getInt("confidence")
-        val issuesArray = json.optJSONArray("issues")
+    private fun parseAcceptabilityResponse(response: JSONObject): ImplementationAcceptabilityResult {
+        val confidence = response.getInt("confidence")
+        val issuesArray = response.optJSONArray("issues")
         val issues = issuesArray?.let { array ->
             (0 until array.length()).map { array.getString(it) }
         } ?: emptyList()

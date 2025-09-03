@@ -1,11 +1,8 @@
 package sharepa.nlprogramming.ambiguity
 
-import sharepa.nlprogramming.llm.LLMClient
 import org.json.JSONObject
+import sharepa.nlprogramming.llm.LLMClient
 
-/**
- * LLM-based ambiguity detector that uses confidence scoring and issue identification.
- */
 internal class LLMPreliminaryAmbiguityDetector(
     private val llmClient: LLMClient,
     clarityThreshold: Int
@@ -13,17 +10,18 @@ internal class LLMPreliminaryAmbiguityDetector(
     private val resultFactory = PreliminaryAmbiguityResultFactory(clarityThreshold)
 
     override fun detectAmbiguity(naturalLanguageText: String): PreliminaryAmbiguityResult {
-        val response = llmClient.generateText(AMBIGUITY_DETECTION_PROMPT, naturalLanguageText)
+        val response = llmClient.generateJson(
+            AMBIGUITY_DETECTION_PROMPT,
+            naturalLanguageText
+        )
         return parseAmbiguityResponse(response)
     }
 
-    private fun parseAmbiguityResponse(response: String): PreliminaryAmbiguityResult {
-        val json = parseJsonFromLLMResponse(response)
-
-        val clarityScore = json.getInt("clarity_score")
-        val summary = json.getString("summary")
-        val issues = json.getJSONArray("issues").run { (0 until length()).map(this::getString) }
-        val suggestions = json.getJSONArray("suggestions").run { (0 until length()).map(this::getString) }
+    private fun parseAmbiguityResponse(response: JSONObject): PreliminaryAmbiguityResult {
+        val clarityScore = response.getInt("clarity_score")
+        val summary = response.getString("summary")
+        val issues = response.getJSONArray("issues").run { (0 until length()).map(this::getString) }
+        val suggestions = response.getJSONArray("suggestions").run { (0 until length()).map(this::getString) }
 
         return resultFactory.create(
             clarityScore = clarityScore,

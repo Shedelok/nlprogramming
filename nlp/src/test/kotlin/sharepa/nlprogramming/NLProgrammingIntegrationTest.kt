@@ -106,7 +106,7 @@ class NLProgrammingIntegrationTest {
     @Test
     fun `should throw exception for slightly ambiguous prompt`() {
         assertThrows<NlProgrammingCompilationException> {
-            nlp.translateAndCompile("""locate first zero in 'list'""")
+            nlp.translateAndCompile("""locate first zero in list""".trimMargin())
         }
     }
 
