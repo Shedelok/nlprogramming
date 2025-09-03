@@ -29,8 +29,8 @@ internal class LLMImplementationConfidenceChecker(
     }
 
     private fun parseAcceptabilityResponse(response: String): ImplementationAcceptabilityResult {
-        val cleanResponse = response.replace("```json", "").replace("```", "").trim()
-        val json = JSONObject(cleanResponse)
+        val json = parseJsonFromLLMResponse(response)
+
         val confidence = json.getInt("confidence")
         val issuesArray = json.optJSONArray("issues")
         val issues = issuesArray?.let { array ->

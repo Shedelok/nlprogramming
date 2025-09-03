@@ -18,13 +18,7 @@ internal class LLMPreliminaryAmbiguityDetector(
     }
 
     private fun parseAmbiguityResponse(response: String): PreliminaryAmbiguityResult {
-        val cleanResponse = response.trim()
-            .removePrefix("```json")
-            .removePrefix("```")
-            .removeSuffix("```")
-            .trim()
-
-        val json = JSONObject(cleanResponse)
+        val json = parseJsonFromLLMResponse(response)
 
         val clarityScore = json.getInt("clarity_score")
         val summary = json.getString("summary")
