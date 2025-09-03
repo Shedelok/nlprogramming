@@ -9,9 +9,9 @@ fun main() {
     NLProgramming(apiKey, cacheSizeLimitKB = 50 * 1000).use { nlp ->
         val calcPalindromes = nlp.translateAndCompile(
             """
-                calculate number of palindrome strings in list args["arr"].
-                if the given list is empty, throw IllegalArgumentException
-               """.trimIndent()
+             calculate number of palindrome strings in list args["arr"].
+             if the given list is empty, throw IllegalArgumentException
+            """
         )
 
         println(calcPalindromes(mapOf("arr" to listOf("ana", "bob")))) // prints 2
