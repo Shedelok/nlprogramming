@@ -22,7 +22,7 @@ fun main() {
     
     println("Initializing NLProgramming library...")
     
-    val nlp = NLProgramming(apiKey, cacheSizeLimitKB = 50 * 1000, sleepBeforeEachLlmCallMillis = 1000)
+    val nlp = NLProgramming(apiKey, cacheSizeLimitKB = 50 * 1000, sleepBeforeEachLLMCallMillis = 1000)
     val stockDataService = StockDataService(nlp)
     val stockController = StockController(stockDataService, nlp)
     
